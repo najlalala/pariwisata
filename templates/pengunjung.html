@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}Pengunjung & Fasilitas - Pariwisata Jabar{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-chart-line me-2"></i>Dashboard Pengunjung & Fasilitas
+{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <!-- Total Destinasi -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total Destinasi</h6>
+                        <h3 class="fw-bold mb-0">{{ top_daerah|length or 0 }}</h3>
+                        <small class="text-white-75">Kabupaten/Kota</small>
+                    </div>
+                    <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Pengunjung -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total Pengunjung</h6>
+                        <h3 class="fw-bold mb-0">
+                            {{ "{:,.1f}".format((top_daerah|sum(attribute='total') or 0) / 1_000_000) }}JT
+                        </h3>
+                        <small class="text-white-75">Tahun Terbaru</small>
+                    </div>
+                    <i class="fas fa-users fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Hotel -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total Hotel</h6>
+                        <h3 class="fw-bold mb-0">{{ "{:,}".format(fasilitas_data|sum(attribute='hotel') or 0) }}</h3>
+                        <small class="text-white-75">Unit Akomodasi</small>
+                    </div>
+                    <i class="fas fa-bed fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Restoran -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total Restoran</h6>
+                        <h3 class="fw-bold mb-0">{{ "{:,}".format(fasilitas_data|sum(attribute='restoran') or 0) }}</h3>
+                        <small class="text-white-75">Unit Kuliner</small>
+                    </div>
+                    <i class="fas fa-utensils fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Charts Row -->
+<div class="row mb-4">
+    <!-- Tren Pengunjung -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-chart-area text-primary me-2"></i>Tren Pengunjung Wisatawan
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 350px;">
+                    <canvas id="pengunjungTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 10 Destinasi Chart -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-trophy text-warning me-2"></i>Top 10 Destinasi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 350px;">
+                    <canvas id="topDestinasiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script>
+const ctxTop = document.getElementById('topDestinasiChart').getContext('2d');
+const topDestinasiLabels = [
+    {% for item in top_daerah[:10] %}
+        "{{ item.nama_kabupaten_kota }}",
+    {% endfor %}
+];
+const topDestinasiData = [
+    {% for item in top_daerah[:10] %}
+        {{ item.total }},
+    {% endfor %}
+];
+
+new Chart(ctxTop, {
+    type: 'bar', // horizontal bar bisa juga 'bar' + options.indexAxis
+    data: {
+        labels: topDestinasiLabels,
+        datasets: [{
+            label: 'Pengunjung',
+            data: topDestinasiData,
+            backgroundColor: 'rgba(255, 193, 7, 0.7)',
+            borderColor: 'rgba(255, 193, 7, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y', // ini membuat bar horizontal
+        responsive: true,
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return (value/1000).toLocaleString() + 'K';
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+
+
+<!-- Data Tables Row -->
+<div class="row">
+    <!-- Top Destinasi Table -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-list text-primary me-2"></i>Ranking Destinasi
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="rankingTable" class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4 py-3 border-0">Rank</th>
+                                <th class="py-3 border-0">Destinasi</th>
+                                <th class="py-3 border-0 text-end">Pengunjung</th>
+                                <th class="py-3 border-0 text-center">Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in top_daerah %}
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        {% if loop.index == 1 %}
+                                        <i class="fas fa-crown text-warning me-2"></i>
+                                        {% elif loop.index == 2 %}
+                                        <i class="fas fa-medal text-secondary me-2"></i>
+                                        {% elif loop.index == 3 %}
+                                        <i class="fas fa-award text-warning me-2"></i>
+                                        {% else %}
+                                        <span class="badge bg-light text-dark me-2">{{ loop.index }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="fw-semibold">{{ item.nama_kabupaten_kota }}</div>
+                                </td>
+                                <td class="py-3 text-end">
+                                    <span class="fw-bold text-primary">{{ "{:,.0f}".format(item.total/1000) }}K</span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <i class="fas fa-arrow-up text-success"></i>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fasilitas Detail Table -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-hotel text-success me-2"></i>Detail Fasilitas Pendukung
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="fasilitasTable" class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4 py-3 border-0">No</th>
+                                <th class="py-3 border-0">Kabupaten/Kota</th>
+                                <th class="py-3 border-0 text-center">Hotel</th>
+                                <th class="py-3 border-0 text-center">Restoran</th>
+                                <th class="py-3 border-0 text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in fasilitas_data %}
+                            <tr>
+                                <td class="px-4 py-3"><span class="text-muted">{{ loop.index }}</span></td>
+                                <td class="py-3"><div class="fw-semibold">{{ item.nama_kabupaten_kota }}</div></td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                        {{ "{:,}".format(item.hotel) }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                        {{ "{:,}".format(item.restoran) }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="fw-bold text-info">{{ "{:,}".format(item.hotel + item.restoran) }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tambahin di bawah (sebelum </body>) -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#rankingTable').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "searching": true,
+        "ordering": false   // ⬅️ ranking fix dari backend
+    });
+
+    $('#fasilitasTable').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "searching": true,
+        "ordering": true    // ⬅️ fasilitas boleh urut dinamis
+    });
+});
+</script>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart configuration dengan tema modern
+    Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+    Chart.defaults.color = '#64748b';
+
+    // =====================
+    // 1. Tren Pengunjung (Area Chart)
+    // =====================
+    const pengunjungData = {{ pengunjung_tahun | default([]) | tojson }};
+    if (pengunjungData && pengunjungData.length > 0) {
+        const ctx1 = document.getElementById('pengunjungTrendChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: pengunjungData.map(item => item.tahun),
+                datasets: [
+                    {
+                        label: 'Nusantara',
+                        data: pengunjungData.map(item => item.nusantara || 0),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Mancanegara',
+                        data: pengunjungData.map(item => item.mancanegara || 0),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' pengunjung';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =====================
+    // 2. Growth Rate Analysis (Bar Chart)
+    // =====================
+    if (pengunjungData && pengunjungData.length > 1) {
+        const growthData = [];
+        for (let i = 1; i < pengunjungData.length; i++) {
+            const currentYear = pengunjungData[i];
+            const previousYear = pengunjungData[i - 1];
+            
+            const totalCurrent = (currentYear.nusantara || 0) + (currentYear.mancanegara || 0);
+            const totalPrevious = (previousYear.nusantara || 0) + (previousYear.mancanegara || 0);
+            
+            if (totalPrevious > 0) {
+                const growthRate = ((totalCurrent - totalPrevious) / totalPrevious) * 100;
+                growthData.push({
+                    tahun: currentYear.tahun,
+                    growth: growthRate
+                });
+            }
+        }
+
+        const ctx2 = document.getElementById('growthRateChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: growthData.map(item => item.tahun),
+                datasets: [{
+                    label: 'Pertumbuhan (%)',
+                    data: growthData.map(item => item.growth),
+                    backgroundColor: growthData.map(item => 
+                        item.growth >= 0 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(239, 68, 68, 0.8)'
+                    ),
+                    borderColor: growthData.map(item => 
+                        item.growth >= 0 ? '#22c55e' : '#ef4444'
+                    ),
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                return 'Pertumbuhan: ' + value.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(0) + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =====================
+    // 3. Top Destinasi (Horizontal Bar)
+    // =====================
+    const topDaerah = {{ top_daerah | default([]) | tojson }};
+    if (topDaerah && topDaerah.length > 0) {
+        const ctx3 = document.getElementById('topDestinasiChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: topDaerah.map(item => {
+                    const nama = item.nama_kabupaten_kota;
+                    return nama.length > 12 ? nama.substring(0, 12) + '...' : nama;
+                }),
+                datasets: [{
+                    data: topDaerah.map(item => item.total || 0),
+                    backgroundColor: topDaerah.map((_, index) => {
+                        const colors = [
+                            'rgba(255, 193, 7, 0.8)',   // Gold
+                            'rgba(108, 117, 125, 0.8)', // Silver
+                            'rgba(255, 152, 0, 0.8)',   // Bronze
+                            'rgba(59, 130, 246, 0.8)',  // Blue
+                            'rgba(16, 185, 129, 0.8)',  // Green
+                            'rgba(139, 92, 246, 0.8)',  // Purple
+                            'rgba(236, 72, 153, 0.8)',  // Pink
+                            'rgba(245, 101, 101, 0.8)', // Red
+                            'rgba(34, 197, 94, 0.8)',   // Emerald
+                            'rgba(168, 85, 247, 0.8)'   // Violet
+                        ];
+                        return colors[index] || 'rgba(156, 163, 175, 0.8)';
+                    }),
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                            title: function(context) {
+                                return topDaerah[context[0].dataIndex].nama_kabupaten_kota;
+                            },
+                            label: function(context) {
+                                return 'Pengunjung: ' + context.parsed.x.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000).toFixed(0) + 'K';
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =====================
+    // 4. Tourism Density - Pengunjung per Fasilitas (Scatter Plot)
+    // =====================
+    const fasilitasData = {{ fasilitas_data | default([]) | tojson }};
+    const topDaerahMap = {};
+    topDaerah.forEach(item => {
+        topDaerahMap[item.nama_kabupaten_kota] = item.total;
+    });
+
+    if (fasilitasData && fasilitasData.length > 0) {
+        const densityData = fasilitasData.map(item => {
+            const totalFasilitas = (item.hotel || 0) + (item.restoran || 0);
+            const pengunjung = topDaerahMap[item.nama_kabupaten_kota] || 0;
+            const density = totalFasilitas > 0 ? pengunjung / totalFasilitas : 0;
+            
+            return {
+                x: totalFasilitas,
+                y: density,
+                nama: item.nama_kabupaten_kota,
+                pengunjung: pengunjung
+            };
+        }).filter(item => item.pengunjung > 0);
+
+        const ctx4 = document.getElementById('densityChart').getContext('2d');
+        new Chart(ctx4, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Kepadatan Wisata',
+                    data: densityData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    pointRadius: function(context) {
+                        const value = context.parsed.y;
+                        return Math.max(6, Math.min(20, value / 1000));
+                    },
+                    pointHoverRadius: function(context) {
+                        const value = context.parsed.y;
+                        return Math.max(8, Math.min(25, value / 1000 + 2));
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                            title: function(context) {
+                                return densityData[context[0].dataIndex].nama;
+                            },
+                            label: function(context) {
+                                const data = densityData[context.dataIndex];
+                                return [
+                                    `Total Fasilitas: ${data.x.toLocaleString()}`,
+                                    `Pengunjung: ${data.pengunjung.toLocaleString()}`,
+                                    `Rasio: ${Math.round(data.y).toLocaleString()} pengunjung/fasilitas`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'Total Fasilitas (Hotel + Restoran)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Pengunjung per Fasilitas'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000).toFixed(0) + 'K';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

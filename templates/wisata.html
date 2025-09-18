@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}Data Wisata - Pariwisata Jabar{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-map-marked-alt me-2"></i>Data Wisata
+{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <!-- Total Kawasan Wisata -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total Kawasan Wisata</h6>
+                        <h3 class="fw-bold mb-0" id="totalKawasan">-</h3>
+                        <small class="text-white-75">Tahun Terbaru</small>
+                    </div>
+                    <i class="fas fa-mountain fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total ODTW -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Total ODTW</h6>
+                        <h3 class="fw-bold mb-0" id="totalODTW">-</h3>
+                        <small class="text-white-75">Objek Wisata</small>
+                    </div>
+                    <i class="fas fa-camera fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kabupaten Terdepan -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Kabupaten Terdepan</h6>
+                        <h3 class="fw-bold mb-0" id="topKabupaten" style="font-size: 1.2rem;">-</h3>
+                        <small class="text-white-75">Kawasan Terbanyak</small>
+                    </div>
+                    <i class="fas fa-trophy fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jenis ODTW Populer -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); border-radius: 1rem;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">ODTW Terpopuler</h6>
+                        <h3 class="fw-bold mb-0" id="topODTWType" style="font-size: 1.1rem;">-</h3>
+                        <small class="text-white-75">Jenis Favorit</small>
+                    </div>
+                    <i class="fas fa-star fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Charts Row -->
+<div class="row mb-4">
+    <!-- Tren Kawasan Wisata -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-area text-primary me-2"></i>Tren Kawasan Wisata per Tahun
+                    </h5>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+                        <small class="text-muted">Pertumbuhan Kawasan</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 350px;">
+                    <canvas id="kawasanTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Growth Rate Analysis -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-chart-line text-success me-2"></i>Analisis Pertumbuhan
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Growth Rate Card -->
+                <div class="alert alert-light border-0 mb-3" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border-left: 4px solid #22c55e !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-success mb-1"><i class="fas fa-trending-up me-2"></i>Tingkat Pertumbuhan</h6>
+                            <p class="mb-0 small text-muted">Pertumbuhan kawasan wisata rata-rata</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="h4 text-success fw-bold" id="growthRate">-%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Diversity Index -->
+                <div class="alert alert-light border-0 mb-3" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-left: 4px solid #3b82f6 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-primary mb-1"><i class="fas fa-layer-group me-2"></i>Keberagaman ODTW</h6>
+                            <p class="mb-0 small text-muted">Variasi jenis objek wisata</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="h5 text-primary fw-bold" id="diversityIndex">- Jenis</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coverage -->
+                <div class="alert alert-light border-0 mb-0" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-left: 4px solid #f59e0b !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h6 class="text-warning mb-1"><i class="fas fa-map me-2"></i>Cakupan Wilayah</h6>
+                            <p class="mb-0 small text-muted">Kabupaten/Kota dengan wisata aktif</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="h5 text-warning fw-bold" id="areaCoverage">- Kab/Kota</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second Row Charts -->
+<div class="row mb-4">
+    <!-- ODTW by Type -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-pie-chart text-warning me-2"></i>Distribusi ODTW Berdasarkan Jenis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="odtwTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Kabupaten -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-trophy text-primary me-2"></i>Top 10 Kabupaten - Kawasan & ODTW
+                </h5>
+                <div class="d-flex gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+                        <small class="text-muted">Kawasan</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-danger rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+                        <small class="text-muted">ODTW</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 400px;">
+                    <canvas id="kabupatenChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Tables Row -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-list text-primary me-2"></i>Ranking Kawasan Wisata
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="rankingTable" class="table table-hover mb-0 w-100">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="px-4 py-3 border-0">Rank</th>
+                                <th class="py-3 border-0">Kabupaten/Kota</th>
+                                <th class="py-3 border-0 text-center">Kawasan</th>
+                                <th class="py-3 border-0 text-center">ODTW</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in kab_data %}
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        {% if loop.index == 1 %}
+                                        <i class="fas fa-crown text-warning me-2"></i>
+                                        {% elif loop.index == 2 %}
+                                        <i class="fas fa-medal text-secondary me-2"></i>
+                                        {% elif loop.index == 3 %}
+                                        <i class="fas fa-award text-warning me-2"></i>
+                                        {% else %}
+                                        <span class="badge bg-light text-dark me-2">{{ loop.index }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="fw-semibold">{{ item.nama_kabupaten_kota }}</div>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                        {{ "{:,}".format(item.kawasan) }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                        {{ "{:,}".format(item.odtw) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables CSS & JS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#rankingTable').DataTable({
+        "pageLength": 10,
+        "lengthChange": false,
+        "searching": true,
+        "ordering": false
+    });
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+    // Chart configuration dengan tema modern
+    Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+    Chart.defaults.color = '#64748b';
+
+    // Data dari backend
+    const kawasanData = {{ kawasan_data | tojson }};
+    const odtwData = {{ odtw_data | tojson }};
+    const kabData = {{ kab_data | tojson }};
+    
+    // Update statistics cards
+    function updateStatsCards() {
+        // Total kawasan wisata (latest year)
+        if (kawasanData.length > 0) {
+            const latestKawasan = kawasanData[kawasanData.length - 1].total_kawasan;
+            document.getElementById('totalKawasan').textContent = latestKawasan.toLocaleString();
+        }
+        
+        // Total ODTW
+        const totalODTW = odtwData.reduce((sum, item) => sum + Number(item.total), 0);
+        document.getElementById('totalODTW').textContent = totalODTW.toLocaleString();
+
+        // Top kabupaten
+        if (kabData.length > 0) {
+            const namaKab = kabData[0].nama_kabupaten_kota;
+            document.getElementById('topKabupaten').textContent = namaKab.length > 15 ? namaKab.substring(0, 15) + '...' : namaKab;
+        }
+        
+        // Top ODTW type
+        if (odtwData.length > 0) {
+            const jenisODTW = odtwData[0].jenis_odtw;
+            document.getElementById('topODTWType').textContent = jenisODTW.length > 12 ? jenisODTW.substring(0, 12) + '...' : jenisODTW;
+        }
+        
+        // Growth rate calculation
+        if (kawasanData.length >= 2) {
+            const latest = kawasanData[kawasanData.length - 1].total_kawasan;
+            const previous = kawasanData[kawasanData.length - 2].total_kawasan;
+            const growthRate = ((latest - previous) / previous * 100).toFixed(1);
+            document.getElementById('growthRate').textContent = `${growthRate}%`;
+        }
+        
+        // Diversity index (number of ODTW types)
+        document.getElementById('diversityIndex').textContent = `${odtwData.length} Jenis`;
+        
+        // Area coverage (number of kabupaten with tourism)
+        document.getElementById('areaCoverage').textContent = `${kabData.length} Kab/Kota`;
+    }
+
+    // =====================
+    // 1. Tren Kawasan Wisata (Area Chart)
+    // =====================
+    if (kawasanData.length > 0) {
+        const ctx1 = document.getElementById('kawasanTrendChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: kawasanData.map(item => item['tahun']),
+                datasets: [{
+                    label: 'Jumlah Kawasan Wisata',
+                    data: kawasanData.map(item => item['total_kawasan']),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Kawasan Wisata: ' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =====================
+    // 2. Chart ODTW by Type (Doughnut)
+    // =====================
+    if (odtwData.length > 0) {
+        const ctx2 = document.getElementById('odtwTypeChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: odtwData.map(item => {
+                    const label = item['jenis_odtw'];
+                    return label.length > 15 ? label.substring(0, 15) + '...' : label;
+                }),
+                datasets: [{
+                    data: odtwData.map(item => item['total']),
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', 
+                        '#e74a3b', '#858796', '#5a5c69', '#6f42c1',
+                        '#fd7e14', '#20c997'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                            title: function(context) {
+                                return odtwData[context[0].dataIndex].jenis_odtw;
+                            },
+                            label: function(context) {
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `Jumlah: ${value.toLocaleString()} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =====================
+    // 3. Chart Kabupaten (Horizontal Bar)
+    // =====================
+    if (kabData.length > 0) {
+        const ctx3 = document.getElementById('kabupatenChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: kabData.map(item => {
+                    const nama = item['nama_kabupaten_kota'];
+                    return nama.length > 12 ? nama.substring(0, 12) + '...' : nama;
+                }),
+                datasets: [{
+                    label: 'Kawasan Wisata',
+                    data: kabData.map(item => item['kawasan']),
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }, {
+                    label: 'ODTW',
+                    data: kabData.map(item => item['odtw']),
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { 
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        callbacks: {
+                            title: function(context) {
+                                return kabData[context[0].dataIndex].nama_kabupaten_kota;
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.x.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Initialize stats cards when page loads
+    updateStatsCards();
+</script>
+{% endblock %}

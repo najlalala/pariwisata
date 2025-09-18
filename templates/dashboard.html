@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Pariwisata Jabar{% endblock %}
+{% block page_title %}
+<i class="fas fa-tachometer-alt me-2"></i>Dashboard
+{% endblock %}
+
+{% block content %}
+<style>
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 20px;
+    }
+    
+    .year-filter-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .year-filter {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .year-filter option {
+        background: #667eea;
+        color: white;
+    }
+    
+    .stat-card {
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        height: 140px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(30px, -30px);
+    }
+    
+    .chart-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        height: 450px;
+    }
+    
+    .ranking-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        height: 450px;
+        overflow-y: auto;
+    }
+    
+    .kpi-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+        height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    .table-modern {
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .table-modern thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+        font-size: 14px;
+    }
+    
+    .table-modern tbody td {
+        padding: 15px;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+    
+    .table-modern tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+    
+    .table-modern tbody tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 14px;
+        color: white;
+    }
+    
+    .rank-1 { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #8b5a00; }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0, #e2e2e2); color: #666; }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32, #deb887); color: #8b4513; }
+    .rank-other { background: linear-gradient(135deg, #667eea, #764ba2); }
+    
+    .insights-section {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8edff 100%);
+        border-radius: 20px;
+        padding: 30px;
+        margin-top: 25px;
+    }
+    
+    .insight-item {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .insight-item:hover {
+        transform: translateY(-5px);
+        border-color: #667eea;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    }
+    
+    .insight-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .growth-indicator {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        margin-left: 8px;
+        font-weight: 600;
+    }
+    
+    .growth-positive { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .growth-negative { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .growth-neutral { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+    
+    .section-title {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 20px;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 350px;
+    }
+</style>
+
+<!-- Year Filter Section -->
+<div class="year-filter-section">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h5 class="mb-1">
+                <i class="fas fa-chart-bar me-2"></i>Analytics Dashboard Pariwisata
+            </h5>
+            <p class="mb-0 opacity-75">Monitoring dan analisis data pariwisata Jawa Barat</p>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex align-items-center justify-content-end">
+                <i class="fas fa-calendar-alt me-2"></i>
+                <form method="get" action="/dashboard" class="d-flex align-items-center">
+                    <label for="tahun" class="me-2 fw-bold text-nowrap">Tahun:</label>
+                    <select name="tahun" id="tahun" class="form-select form-select-sm year-filter" onchange="this.form.submit()">
+                        {% for y in range(2023, 2013, -1) %}
+                            <option value="{{ y }}" {% if y == tahun %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-container">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Objek Wisata -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #93a7ff 0%, #a97bd7 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Objek Wisata</h6>
+                            <h3 class="fw-bold mb-0">{{ "{:,}".format(total_kawasan or 0) }}</h3>
+                        </div>
+                        <i class="fas fa-mountain fa-2x opacity-75"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span class="growth-indicator {% if kawasan_growth > 0 %}growth-positive{% elif kawasan_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">
+                            <i class="fas fa-arrow-{% if kawasan_growth > 0 %}up{% elif kawasan_growth < 0 %}down{% else %}right{% endif %} me-1"></i>
+                            {{ "%.1f"|format(kawasan_growth or 0) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cagar Budaya -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Cagar Budaya</h6>
+                            <h3 class="fw-bold mb-0">{{ "{:,}".format(total_cagar or 0) }}</h3>
+                        </div>
+                        <i class="fas fa-landmark fa-2x opacity-75"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span class="growth-indicator {% if cagar_growth > 0 %}growth-positive{% elif cagar_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">
+                            <i class="fas fa-arrow-{% if cagar_growth > 0 %}up{% elif cagar_growth < 0 %}down{% else %}right{% endif %} me-1"></i>
+                            {{ "%.1f"|format(cagar_growth or 0) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hotel -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Hotel</h6>
+                            <h3 class="fw-bold mb-0">{{ "{:,}".format(total_hotel or 0) }}</h3>
+                        </div>
+                        <i class="fas fa-hotel fa-2x opacity-75"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span class="growth-indicator {% if hotel_growth > 0 %}growth-positive{% elif hotel_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">
+                            <i class="fas fa-arrow-{% if hotel_growth > 0 %}up{% elif hotel_growth < 0 %}down{% else %}right{% endif %} me-1"></i>
+                            {{ "%.1f"|format(hotel_growth or 0) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Restoran -->
+        <div class="col-xl-2 col-lg-4 col-md-6">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Restoran</h6>
+                            <h3 class="fw-bold mb-0">{{ "{:,}".format(total_restoran or 0) }}</h3>
+                        </div>
+                        <i class="fas fa-utensils fa-2x opacity-75"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span class="growth-indicator {% if restoran_growth > 0 %}growth-positive{% elif restoran_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">
+                            <i class="fas fa-arrow-{% if restoran_growth > 0 %}up{% elif restoran_growth < 0 %}down{% else %}right{% endif %} me-1"></i>
+                            {{ "%.1f"|format(restoran_growth or 0) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Pengunjung -->
+        <div class="col-xl-4 col-lg-8 col-md-12">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="text-white-50 mb-1">Total Pengunjung</h6>
+                            <h3 class="fw-bold mb-0">{{ "%.1f"|format((total_pengunjung or 0) / 1_000_000) }} Juta</h3>
+                            <p class="mb-0 text-white-50 small">Wisatawan domestik & mancanegara</p>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-75"></i>
+                    </div>
+                    <div class="mt-2">
+                        <span class="growth-indicator {% if pengunjung_growth > 0 %}growth-positive{% elif pengunjung_growth < 0 %}growth-negative{% else %}growth-neutral{% endif %}">
+                            <i class="fas fa-arrow-{% if pengunjung_growth > 0 %}up{% elif pengunjung_growth < 0 %}down{% else %}right{% endif %} me-1"></i>
+                            {{ "%.1f"|format(pengunjung_growth or 0) }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Rankings Row -->
+    <div class="row g-4 mb-4">
+        <!-- Top Visitors Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="chart-section">
+                <h5 class="section-title">
+                    <i class="fas fa-trophy me-2"></i>Top Kabupaten/Kota - Pengunjung Terbanyak
+                </h5>
+                <div class="chart-container">
+                    <canvas id="topVisitorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rankings Table -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="ranking-section">
+                <h5 class="section-title">
+                    <i class="fas fa-list-ol me-2"></i>Ranking Kawasan Wisata
+                </h5>
+                <table class="table table-modern mb-4">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Rank</th>
+                            <th>Kabupaten/Kota</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_kawasan[:5] %}
+                        <tr>
+                            <td>
+                                <span class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% else %}rank-other{% endif %}">
+                                    {{ loop.index }}
+                                </span>
+                            </td>
+                            <td>{{ item.nama }}</td>
+                            <td class="text-end fw-bold">{{ "{:,}".format(item.total) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Belum ada data</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Performance Indicators -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-lg-6">
+            <div class="kpi-card">
+                <div class="insight-icon mb-3">
+                    <i class="fas fa-calculator fa-2x"></i>
+                </div>
+                <h4 class="text-primary mb-1">{{ hotel_ratio }}</h4>
+                <p class="text-muted mb-0 small">Rasio Hotel per Kawasan</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6">
+            <div class="kpi-card">
+                <div class="insight-icon mb-3">
+                    <i class="fas fa-utensils fa-2x"></i>
+                </div>
+                <h4 class="text-success mb-1">{{ restoran_ratio }}</h4>
+                <p class="text-muted mb-0 small">Rasio Restoran per Kawasan</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6">
+            <div class="kpi-card">
+                <div class="insight-icon mb-3">
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+                <h4 class="text-warning mb-1">{{ "{:,.0f}".format(avg_pengunjung_per_kawasan) }}</h4>
+                <p class="text-muted mb-0 small">Rata-rata Pengunjung per Kawasan</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-6">
+            <div class="kpi-card">
+                <div class="insight-icon mb-3">
+                    <i class="fas fa-landmark fa-2x"></i>
+                </div>
+                <h4 class="text-info mb-1">{{ cagar_percentage }}%</h4>
+                <p class="text-muted mb-0 small">Persentase Cagar Budaya</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div class="insights-section">
+        <h3 class="text-center mb-4 section-title">
+            <i class="fas fa-lightbulb me-2"></i>Key Insights & Analytics Tahun {{ tahun }}
+        </h3>
+        <div class="row g-4">
+            <div class="col-xl-3 col-lg-6">
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-chart-line fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Pertumbuhan {{ "Positif" if pengunjung_growth > 0 else "Negatif" if pengunjung_growth < 0 else "Stabil" }}</h6>
+                    <p class="text-muted small mb-0">Tingkat kunjungan wisatawan {{ "meningkat" if pengunjung_growth > 0 else "menurun" if pengunjung_growth < 0 else "stabil" }} {{ "%.1f"|format(pengunjung_growth|abs) }}% dibanding tahun sebelumnya</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-map-marker-alt fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Distribusi Regional</h6>
+                    <p class="text-muted small mb-0">Total {{ "{:,}".format(total_kawasan) }} kawasan wisata tersebar di seluruh kabupaten/kota Jawa Barat</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-hotel fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Fasilitas Pendukung</h6>
+                    <p class="text-muted small mb-0">Rasio fasilitas mendukung dengan {{ hotel_ratio }} hotel dan {{ restoran_ratio }} restoran per kawasan wisata</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+                <div class="insight-item">
+                    <div class="insight-icon">
+                        <i class="fas fa-award fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">Potensi Budaya</h6>
+                    <p class="text-muted small mb-0">{{ "{:,}".format(total_cagar) }} cagar budaya ({{ cagar_percentage }}%) menjadi aset wisata bersejarah yang berharga</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Data dari backend
+    const currentYear = {{ tahun }};
+    const topPengunjungData = {{ top_pengunjung | tojson }};
+
+    // Chart colors
+    const chartColors = [
+        '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6b7280'
+    ];
+
+    // Top Visitors Bar Chart
+    if (topPengunjungData && topPengunjungData.length > 0) {
+        const ctx = document.getElementById('topVisitorsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: topPengunjungData.map(item => item.nama),
+                datasets: [{
+                    label: 'Pengunjung (Juta)',
+                    data: topPengunjungData.map(item => item.total / 1000000),
+                    backgroundColor: chartColors.map(color => color + '20'),
+                    borderColor: chartColors,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: false 
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toFixed(1) + ' Juta Pengunjung';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { 
+                            display: false 
+                        },
+                        ticks: { 
+                            font: { 
+                                weight: '600' 
+                            },
+                            maxRotation: 45,
+                            callback: function(value, index) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 10 ? label.substring(0, 10) + '...' : label;
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { 
+                            color: '#f1f5f9' 
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + ' Jt';
+                            },
+                            font: { 
+                                weight: '600' 
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Add hover effects to cards
+    document.querySelectorAll('.stat-card, .kpi-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+</script>
+{% endblock %}

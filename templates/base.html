@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard Pariwisata Jabar{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --transition-time: 0.3s;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: all var(--transition-time) ease;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-time) ease;
+        }
+        
+        .sidebar-header h4 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity var(--transition-time) ease;
+        }
+        
+        .sidebar.collapsed .sidebar-header h4 {
+            opacity: 0;
+        }
+        
+        .sidebar-header .logo-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            margin: 5px 10px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all var(--transition-time) ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+            width: 20px;
+            margin-right: 15px;
+            text-align: center;
+        }
+        
+        .nav-text {
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity var(--transition-time) ease;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-time) ease;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
+        .navbar {
+            background: white !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            border: none;
+            padding: 15px 25px;
+        }
+        
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #667eea;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #764ba2;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: #1f2937 !important;
+            font-size: 1.4rem;
+        }
+        
+        .navbar-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: 500;
+        }
+        
+        .content-wrapper {
+            padding: 25px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            .sidebar .nav-text,
+            .sidebar .sidebar-header h4 {
+                opacity: 0;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+        }
+        
+        /* Tooltip for collapsed sidebar */
+        .nav-tooltip {
+            position: absolute;
+            left: calc(100% + 10px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+        
+        .nav-tooltip::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        .sidebar.collapsed .nav-link:hover .nav-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Alert Styles */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Card Base Styles */
+        .card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4>
+                <i class="fas fa-mountain logo-icon"></i>
+                <span class="nav-text">Pariwisata Jabar</span>
+            </h4>
+        </div>
+        
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="nav-text">Dashboard</span>
+                    <div class="nav-tooltip">Dashboard</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/wisata" class="nav-link {% if request.endpoint == 'wisata' %}active{% endif %}">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span class="nav-text">Data Wisata</span>
+                    <div class="nav-tooltip">Data Wisata</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/pengunjung" class="nav-link {% if request.endpoint == 'pengunjung' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span class="nav-text">Pengunjung & Fasilitas</span>
+                    <div class="nav-tooltip">Pengunjung & Fasilitas</div>
+                </a>
+            </div>
+            
+            <div class="nav-item" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <a href="/logout" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Logout</span>
+                    <div class="nav-tooltip">Logout</div>
+                </a>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-brand mb-0">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </span>
+                </div>
+                <div class="navbar-nav">
+                    <span class="navbar-text">
+                        <i class="fas fa-user me-2"></i>Admin User
+                    </span>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Page Content -->
+        <div class="content-wrapper">
+            <!-- Flash Messages -->
+            <div id="flash-messages">
+                <!-- Example flash message - replace with actual Flask flash messages -->
+                <!-- 
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>Data berhasil diperbarui!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                -->
+            </div>
+            
+            {% block content %}
+            <!-- Content will be injected here -->
+            <div class="text-center py-5">
+                <i class="fas fa-mountain fa-3x text-muted mb-3"></i>
+                <h3 class="text-muted">Selamat datang di Dashboard Pariwisata Jawa Barat</h3>
+                <p class="text-muted">Pilih menu di sidebar untuk mulai melihat data</p>
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar Toggle Function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const toggleIcon = toggleBtn.querySelector('i');
+            
+            sidebar.classList.toggle('collapsed');
+            
+            // Change icon
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-chevron-right');
+                localStorage.setItem('sidebarCollapsed', 'true');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-bars');
+                localStorage.setItem('sidebarCollapsed', 'false');
+            }
+        }
+        
+        // Remember sidebar state
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const toggleIcon = toggleBtn.querySelector('i');
+            
+            if (sidebarCollapsed === 'true') {
+                sidebar.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+        });
+        
+        // Auto-collapse on mobile
+        function checkMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const toggleIcon = toggleBtn.querySelector('i');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+        }
+        
+        // Check on load and resize
+        window.addEventListener('load', checkMobile);
+        window.addEventListener('resize', checkMobile);
+        
+        // Smooth hover effects for nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.background = 'rgba(255, 255, 255, 0.15)';
+                }
+            });
+            
+            link.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.background = 'transparent';
+                }
+            });
+        });
+        
+        // Add some utility functions
+        window.showAlert = function(message, type = 'success') {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            const flashContainer = document.getElementById('flash-messages');
+            flashContainer.insertAdjacentHTML('beforeend', alertHtml);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                const alerts = flashContainer.querySelectorAll('.alert');
+                if (alerts.length > 0) {
+                    alerts[0].remove();
+                }
+            }, 5000);
+        };
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
